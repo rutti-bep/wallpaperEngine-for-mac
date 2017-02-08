@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 48;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -199,25 +199,22 @@
 				TargetAttributes = {
 					5901D3DE1E48648B00E4A035 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = R5527NB694;
 						ProvisioningStyle = Automatic;
 					};
 					5901D3ED1E48648C00E4A035 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = R5527NB694;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 5901D3DE1E48648B00E4A035;
 					};
 					5901D3F81E48648C00E4A035 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = R5527NB694;
 						ProvisioningStyle = Automatic;
 						TestTargetID = 5901D3DE1E48648B00E4A035;
 					};
 				};
 			};
 			buildConfigurationList = 5901D3DA1E48648B00E4A035 /* Build configuration list for PBXProject "wallpaperEngine" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 8.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
