@@ -36,7 +36,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     func setWindow(){
         let screen = NSScreen.main()
         window.styleMask = NSWindowStyleMask.borderless
-        window.level = Int(CGWindowLevelForKey(.desktopIconWindow))
+        window.level = Int(CGWindowLevelForKey(.desktopWindow))
         window.collectionBehavior = NSWindowCollectionBehavior.canJoinAllSpaces
         
         if let frame = screen?.frame  {
@@ -46,6 +46,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             window.setContentSize(size)
             //print(size)
         }
+        
     }
     
     func launchFinder(){
