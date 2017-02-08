@@ -71,13 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     func setRepeatMovie(){
         isMovieRepeat = !isMovieRepeat
         if(isMovieRepeat){
-            menuItemRepeat.title = "repeat✔︎"
-            NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
-                DispatchQueue.main.async {
-                    self.player.seek(to: kCMTimeZero)
-                    self.player.play()
-                }
-            })
+            menuItemRepeat.title = "repeat ✔︎"
         }else{
             menuItemRepeat.title = "repeat"
         }
@@ -94,6 +88,15 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         self.statusItem.title = "wallpaper!"
         self.statusItem.highlightMode = true
         self.statusItem.menu = menu
+        
+        NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
+            DispatchQueue.main.async {
+                if(self.isMovieRepeat){
+                    self.player.seek(to: kCMTimeZero)
+                    self.player.play()
+                }
+            }
+        })
         
        /* if let button = self.statusItem.button {
             button.title = "pop up!";
