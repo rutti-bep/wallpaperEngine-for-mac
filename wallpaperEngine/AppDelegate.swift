@@ -7,8 +7,6 @@
 //
 
 import Cocoa
-//import Dispatch
-//import CoreGraphics
 import AppKit
 import AVKit
 import Foundation
@@ -20,105 +18,130 @@ class AppDelegate: NSObject, NSApplicationDelegate{
 
     @IBOutlet weak var window: NSWindow!
     @IBOutlet weak var playerView: AVPlayerView!
+    var statusItem = NSStatusBar.system().statusItem(withLength: -1)
+    let menu = NSMenu()
+    let menuItemRepeat = NSMenuItem()
+    let popover = NSPopover()
+    var player = AVPlayer()
+    var isMovieRepeat = false
     
-    var imageUrls = [URL]();
-   /*     "/Users/konnosatoru/Downloads/Cg5A7_7U0AAWpwA.jpg",
-                     "/Users/konnosatoru/Downloads/graphic23_l.png"
-    ];*/
-    var imagesDir =  NSURL.fileURL(withPath: "/Users/konnosatoru/Desktop/wallpaper/");
-    var count = 0;
-    
-    
-    func start(){
-        let documentsDirectoryURL =  NSURL.fileURL(withPath: "/Users/konnosatoru/Desktop/wallpaper/");
-        var bool: ObjCBool = false
-        if FileManager.default.fileExists(atPath: documentsDirectoryURL.path, isDirectory: &bool),bool.boolValue  {
-            print("url is a folder url")
-            do {
-                let files = try FileManager.default.contentsOfDirectory(at: documentsDirectoryURL, includingPropertiesForKeys: nil, options: [])
-                let picFiles = files.filter{ $0.pathExtension == "png" }
-                for picUrl in picFiles{
-                    imageUrls += [ picUrl ];
-                    //print("file urls:",picUrl)
-                }
-                
-            } catch let error as NSError {
-                print(error.localizedDescription + "ok")
-            }
-        }
+    func startMovie(fileURL: URL){
+        let avAsset = AVURLAsset(url: fileURL)
+        let Item = AVPlayerItem(asset: avAsset)
+        player = AVPlayer(playerItem: Item)
+        playerView.player = player
+        player.play()
     }
     
-    func applicationDidFinishLaunching(_ aNotification: Notification) {
-        start()
+    func setWindow(){
         let screen = NSScreen.main()
-        
-        // パスからassetを生成.
-        let path = "/Users/konnosatoru/Movies/小林さんちのメイドラゴン/小林さんちのメイドラゴン OP.mp4"
-        
-        let fileURL: URL = NSURL.fileURL(withPath: path)
-        print(fileURL)
-        let avAsset = AVURLAsset(url: fileURL)
-        // AVPlayerに再生させるアイテムを生成.
-        let Item = AVPlayerItem(asset: avAsset)
-        
-        var player = AVPlayer(playerItem: Item)
-        
-        playerView.player = player
-       
-        player.play()
-        
+        window.styleMask = NSWindowStyleMask.borderless
         window.level = Int(CGWindowLevelForKey(.desktopIconWindow))
-        window.styleMask = NSBorderlessWindowMask
         if let frame = screen?.frame  {
             let size = NSSize(width: frame.size.width, height: frame.size.height)
             let point = NSPoint(x: 0, y: 0)
             window.setFrameOrigin(point)
             window.setContentSize(size)
-            print(size)
+            //print(size)
         }
-    /*    var wallpaperTimer = Timer.scheduledTimer(
-            timeInterval: 0.01,
-            target: self,
-            selector: Selector("wallpaperChange"),
-            userInfo: nil,
-            repeats: true);*/
     }
     
-    func wallpaperChange(){
-        count += 1;
-        if(count > imageUrls.count-1){
-            count = 0;
-        }
-        print(count)
-        do {
-            var imgurl = imageUrls[count];
-            print (imgurl)
-            let workspace = NSWorkspace.shared()
-            if let screen = NSScreen.main()  {
-                try workspace.setDesktopImageURL(imgurl, for: screen, options: [:])
+    func launchFinder(){
+        let openPanel = NSOpenPanel()
+        openPanel.allowsMultipleSelection = false
+        openPanel.canChooseDirectories = false
+        openPanel.canCreateDirectories = false
+        openPanel.canChooseFiles = true
+        openPanel.allowedFileTypes = ["mp4","m4a"]
+        let path = NSSearchPathForDirectoriesInDomains(.moviesDirectory, .userDomainMask, true)[0] as String
+        let url:URL = NSURL(fileURLWithPath: path) as URL
+        openPanel.directoryURL = url;
+        openPanel.begin { (result) -> Void in
+            if result == NSFileHandlingPanelOKButton { // ファイルを選択したか(OKを押したか)
+                guard let url = openPanel.url else { return }
+                self.startMovie(fileURL: url)
+                print(url.absoluteString)
+                // ここでファイルを読み込む
             }
-        } catch {
-            print(error)
+        }
+      //  let workspace = NSWorkspace.shared()
+       
+    }
+    
+    func setRepeatMovie(){
+        isMovieRepeat = !isMovieRepeat
+        if(isMovieRepeat){
+            menuItemRepeat.title = "repeat✔︎"
+            NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
+                DispatchQueue.main.async {
+                    self.player.seek(to: kCMTimeZero)
+                    self.player.play()
+                }
+            })
+        }else{
+            menuItemRepeat.title = "repeat"
         }
     }
-
-        /*var text = "Hello, World!";
-        var display: CGDirectDisplayID = CGMainDisplayID(); // 1
-        var err: CGError = CGDisplayCapture (display); // 2
-       // if (Int(err) != Int(kCGErrorSuccess.value)){
-            var ctx: CGContext = CGDisplayGetDrawingContext (display)!; // 3
-         //   if (ctx != NULL){
-               // CGContextSelectFont (ctx, "Times-Roman", 48, kCGEncodingMacRoman);
-                //CGContextSetTextDrawingMode (ctx, kCGTextFillStroke);
-                ctx.setFillColor (red: 0.3, green: 0.3, blue: 0.3, alpha: 1);
-                ctx.setStrokeColor (red: 1, green: 1, blue: 1, alpha: 1);
-               // CGContextShowTextAtPoint (ctx, 40, 40, text, text.characters.count); // 4
-                sleep (4); // 5
-         //   }
-            CGDisplayRelease (display); // 6
-       // }*/
     
-
+    func quit(){
+        exit(0);
+    }
+    
+    func applicationDidFinishLaunching(_ aNotification: Notification) {
+        self.setWindow()
+        self.launchFinder()
+        
+        self.statusItem.title = "wallpaper!"
+        self.statusItem.highlightMode = true
+        self.statusItem.menu = menu
+        
+       /* if let button = self.statusItem.button {
+            button.title = "pop up!";
+            button.action = #selector(AppDelegate.togglePopover)
+            print("pop")
+        }*/
+        
+        let menuItemSelect = NSMenuItem()
+        menuItemSelect.title = "select"
+        menuItemSelect.action = #selector(AppDelegate.launchFinder)
+        menu.addItem(menuItemSelect)
+        
+        menuItemRepeat.title = "repeat"
+        menuItemRepeat.action = #selector(AppDelegate.setRepeatMovie)
+        menu.addItem(menuItemRepeat)
+        
+        let menuItemQuit = NSMenuItem()
+        menuItemQuit.title = "quit"
+        menuItemQuit.action = #selector(AppDelegate.quit)
+        menu.addItem(menuItemQuit)
+    
+      //  popover.contentViewController = NSTabViewController(nibName: "QuotesViewController", bundle: nil)
+        
+       
+    }
+    
+    func showPopover() {
+        if let button = self.statusItem.button {
+            
+            print(button.bounds)
+            popover.show(relativeTo:button.bounds , of: button, preferredEdge:  NSRectEdge.minY)
+        }
+    }
+    
+    func closePopover() {
+     //   popover.performClose(sender)
+    }
+    
+    func togglePopover() {
+        print("hoge")
+        if popover.isShown {
+            closePopover()
+        } else {
+            showPopover()
+        }
+    }
+    
+  
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
