@@ -37,6 +37,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         let screen = NSScreen.main()
         window.styleMask = NSWindowStyleMask.borderless
         window.level = Int(CGWindowLevelForKey(.desktopIconWindow))
+        window.collectionBehavior = NSWindowCollectionBehavior.canJoinAllSpaces
+        
         if let frame = screen?.frame  {
             let size = NSSize(width: frame.size.width, height: frame.size.height)
             let point = NSPoint(x: 0, y: 0)
@@ -97,7 +99,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
                 }
             }
         })
-        
+      /* NSWorkspace.shared().notificationCenter.addObserver(self,
+                                                            selector: #selector(AppDelegate.setWindow),
+                                                                     name: NSNotification.Name.NSWorkspaceActiveSpaceDidChange,
+                                                                     object: nil)
+       */
        /* if let button = self.statusItem.button {
             button.title = "pop up!";
             button.action = #selector(AppDelegate.togglePopover)
