@@ -13,6 +13,7 @@
 		5901D3F31E48648C00E4A035 /* wallpaperEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5901D3F21E48648C00E4A035 /* wallpaperEngineTests.swift */; };
 		5901D3FE1E48648C00E4A035 /* wallpaperEngineUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5901D3FD1E48648C00E4A035 /* wallpaperEngineUITests.swift */; };
 		5901D40D1E4864CC00E4A035 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5901D40C1E4864CC00E4A035 /* CoreGraphics.framework */; };
+		5931E66F1E4B4457008A5218 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 5931E66E1E4B4457008A5218 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,6 +46,7 @@
 		5901D3FD1E48648C00E4A035 /* wallpaperEngineUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = wallpaperEngineUITests.swift; sourceTree = "<group>"; };
 		5901D3FF1E48648C00E4A035 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5901D40C1E4864CC00E4A035 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
+		5931E66E1E4B4457008A5218 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -76,6 +78,7 @@
 		5901D3D61E48648B00E4A035 = {
 			isa = PBXGroup;
 			children = (
+				5931E66E1E4B4457008A5218 /* README.md */,
 				5901D3E11E48648B00E4A035 /* wallpaperEngine */,
 				5901D3F11E48648C00E4A035 /* wallpaperEngineTests */,
 				5901D3FC1E48648C00E4A035 /* wallpaperEngineUITests */,
@@ -264,6 +267,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5931E66F1E4B4457008A5218 /* README.md in Sources */,
 				5901D3E31E48648B00E4A035 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -510,6 +514,7 @@
 				5901D4041E48648C00E4A035 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5901D4051E48648C00E4A035 /* Build configuration list for PBXNativeTarget "wallpaperEngineTests" */ = {
 			isa = XCConfigurationList;
@@ -518,6 +523,7 @@
 				5901D4071E48648C00E4A035 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		5901D4081E48648C00E4A035 /* Build configuration list for PBXNativeTarget "wallpaperEngineUITests" */ = {
 			isa = XCConfigurationList;
@@ -526,6 +532,7 @@
 				5901D40A1E48648C00E4A035 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
