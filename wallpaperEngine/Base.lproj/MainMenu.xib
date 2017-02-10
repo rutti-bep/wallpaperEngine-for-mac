@@ -685,14 +685,14 @@
         <window title="wallpaperEngine" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="335" y="390" width="561" height="386"/>
+            <rect key="contentRect" x="335" y="390" width="673" height="386"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1440" height="878"/>
             <view key="contentView" wantsLayer="YES" id="EiT-Mj-1SZ">
-                <rect key="frame" x="0.0" y="0.0" width="561" height="386"/>
-                <autoresizingMask key="autoresizingMask"/>
+                <rect key="frame" x="0.0" y="0.0" width="673" height="386"/>
+                <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                 <subviews>
                     <avPlayerView controlsStyle="inline" translatesAutoresizingMaskIntoConstraints="NO" id="Laq-0d-p7l">
-                        <rect key="frame" x="0.0" y="0.0" width="561" height="386"/>
+                        <rect key="frame" x="0.0" y="0.0" width="673" height="386"/>
                     </avPlayerView>
                 </subviews>
                 <constraints>
@@ -702,7 +702,7 @@
                     <constraint firstItem="Laq-0d-p7l" firstAttribute="top" secondItem="EiT-Mj-1SZ" secondAttribute="top" id="cOQ-6S-pT6"/>
                 </constraints>
             </view>
-            <point key="canvasLocation" x="179.5" y="175"/>
+            <point key="canvasLocation" x="123.5" y="175"/>
         </window>
     </objects>
 </document>
