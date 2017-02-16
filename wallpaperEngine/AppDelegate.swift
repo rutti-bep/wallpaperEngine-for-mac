@@ -20,6 +20,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     @IBOutlet weak var playerView: AVPlayerView!
     var player = AVPlayer()
     
+    let openPanel = NSOpenPanel()
+    
     var statusItem = NSStatusBar.system().statusItem(withLength: -1)
     let menu = NSMenu()
     let menuItemRepeat = NSMenuItem()
@@ -27,26 +29,47 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     var popupViewController = NSViewController()
     var quitButton = NSButton()
     var selectButton = NSButton()
+    var runControllButton = NSButton()
     var repeatButton = NSButton()
-    var moviePlayTimeText = NSText()
+    var seekbarTimer = Timer()
     var seekBar = NSSlider()
+    var moviePlayTimeText = NSTextField()
     
  //   var isMovieRepeat = false
     
-    func startMovie(fileURL: URL){
+    func setMovie(fileURL: URL){
         let avAsset = AVURLAsset(url: fileURL)
         let Item = AVPlayerItem(asset: avAsset)
         player = AVPlayer(playerItem: Item)
         playerView.player = player
-        player.play()
         seekBar.action = #selector(AppDelegate.onSeekbarValueChange)
         seekBar.minValue = 0
         seekBar.maxValue = CMTimeGetSeconds(avAsset.duration)
+        movieRunControll()
     }
 
+    func movieRunControll(){
+        if (player.rate == 0.0) {
+            player.play()
+            runControllButton.title = "stop"
+        } else {
+            player.pause()
+            runControllButton.title = "start"
+        }
+    }
+    
     func onSeekbarValueChange(){
-        let seekvarValue:Float64 = Float64(seekBar.floatValue)
-        player.seek(to: CMTimeMakeWithSeconds(seekvarValue,Int32(NSEC_PER_SEC)))
+        let seekbarValue:Float64 = Float64(seekBar.floatValue)
+        player.seek(to: CMTimeMakeWithSeconds(seekbarValue,Int32(NSEC_PER_SEC)))
+    }
+    
+    func seekbarUpdate(){
+        if (self.player.currentItem !== nil){
+            let duration = CMTimeGetSeconds(self.player.currentItem!.duration)
+            let time = CMTimeGetSeconds(self.player.currentTime())
+            let value = Float(seekBar.maxValue - seekBar.minValue) * Float(time) / Float(duration) + Float(seekBar.minValue)
+            seekBar.setValue(value, forKey: "value")
+        }
     }
     
     func setWindow(){
@@ -65,24 +88,22 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func launchFinder(){
-        let openPanel = NSOpenPanel()
         openPanel.allowsMultipleSelection = false
         openPanel.canChooseDirectories = false
         openPanel.canCreateDirectories = false
         openPanel.canChooseFiles = true
         openPanel.allowedFileTypes = ["mp4","mov","m4v"]
+        openPanel.level = Int(CGWindowLevelForKey(.floatingWindow))
         let path = NSSearchPathForDirectoriesInDomains(.moviesDirectory, .userDomainMask, true)[0] as String
         let url:URL = NSURL(fileURLWithPath: path) as URL
         openPanel.directoryURL = url;
         openPanel.begin { (result) -> Void in
-            if result == NSFileHandlingPanelOKButton { // ファイルを選択したか(OKを押したか)
-                guard let url = openPanel.url else { return }
-                self.startMovie(fileURL: url)
+            if result == NSFileHandlingPanelOKButton {                 guard let url = self.openPanel.url else { return }
+                self.setMovie(fileURL: url)
                 print(url.absoluteString)
-                // ここでファイルを読み込む
             }
+            
         }
-       
     }
     
     func togglePopover(_ sender: AnyObject?) {
@@ -96,14 +117,21 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     func showPopover(_ sender: AnyObject?) {
         if let button = statusItem.button {
             popovar.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
+            seekbarUpdate()
+            seekbarTimer = Timer.scheduledTimer(
+                timeInterval: 0.1,
+                target: self,
+                selector: #selector(AppDelegate.seekbarUpdate),
+                userInfo: nil,
+                repeats: true);
         }
     }
     
     func closePopover(_ sender: AnyObject?) {
         popovar.performClose(sender)
+        seekbarTimer = Timer()
     }
 
-    
     func quit(){
         exit(0);
     }
@@ -114,9 +142,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
             DispatchQueue.main.async {
-                if(self.repeatButton.state == 1){
+                if (self.repeatButton.state == 1){
                     self.player.seek(to: kCMTimeZero)
                     self.player.play()
+                } else {
+                    self.runControllButton.title = "start"
                 }
             }
         })
@@ -147,37 +177,29 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         
         seekBar = NSSlider(frame: NSRect(x: 0, y: 0, width: frame.maxX - 100, height : 20))
         seekBar.frame.origin = NSPoint(x: 0, y: 10)
-       // seekBar.addTarget(self, action: "onSliderValueChange:", forControlEvents: UIControlEvents.ValueChanged)
         popupView.addSubview(seekBar)
+        
+        /*moviePlayTimeText = NSTextField(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
+        moviePlayTimeText.frame.origin = NSPoint(x: frame.maxX - 100 , y: 20)
+        moviePlayTimeText.allowsEditingTextAttributes = false
+        moviePlayTimeText.placeholderString = "hoge"
+        popupView.addSubview(moviePlayTimeText)
+         */
         
         repeatButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
         repeatButton.title = "repeat"
         repeatButton.setButtonType(NSSwitchButton)
         repeatButton.state = 0
-      //  repeatButton.action = #selector(AppDelegate.setRepeatMovie)
-       // print(repeatButton.cell?.type)
-        repeatButton.frame.origin = NSPoint(x: 200, y: 10)
+        repeatButton.frame.origin = NSPoint(x: 200, y: 40)
         popupView.addSubview(repeatButton)
         
+        runControllButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
+        runControllButton.frame.origin = NSPoint(x: frame.maxX - 100 , y: 20)
+        runControllButton.title = "start"
+        runControllButton.action = #selector(AppDelegate.movieRunControll)
+        popupView.addSubview(runControllButton)
+        
         popovar.contentViewController = popupViewController
-        
-     /*   self.statusItem.highlightMode = true
-        self.statusItem.menu = menu
-        
-        let menuItemSelect = NSMenuItem()
-        menuItemSelect.title = "select"
-        menuItemSelect.action = #selector(AppDelegate.launchFinder)
-        menu.addItem(menuItemSelect)
-        
-        menuItemRepeat.title = "repeat"
-        menuItemRepeat.action = #selector(AppDelegate.setRepeatMovie)
-        menu.addItem(menuItemRepeat)
-        
-        let menuItemQuit = NSMenuItem()
-        menuItemQuit.title = "quit"
-        menuItemQuit.action = #selector(AppDelegate.quit)
-        menu.addItem(menuItemQuit)
-      */
         
     }
   

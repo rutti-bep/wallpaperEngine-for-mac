@@ -13,7 +13,6 @@
 		5901D3F31E48648C00E4A035 /* wallpaperEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5901D3F21E48648C00E4A035 /* wallpaperEngineTests.swift */; };
 		5901D3FE1E48648C00E4A035 /* wallpaperEngineUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5901D3FD1E48648C00E4A035 /* wallpaperEngineUITests.swift */; };
 		5901D40D1E4864CC00E4A035 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5901D40C1E4864CC00E4A035 /* CoreGraphics.framework */; };
-		5931E66F1E4B4457008A5218 /* README.md in Sources */ = {isa = PBXBuildFile; fileRef = 5931E66E1E4B4457008A5218 /* README.md */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -267,7 +266,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5931E66F1E4B4457008A5218 /* README.md in Sources */,
 				5901D3E31E48648B00E4A035 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -410,10 +408,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = R5527NB694;
+				DEVELOPMENT_TEAM = "rutti-bep";
 				INFOPLIST_FILE = wallpaperEngine/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = test.wallpaperEngine;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
@@ -425,10 +423,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				COMBINE_HIDPI_IMAGES = YES;
-				DEVELOPMENT_TEAM = R5527NB694;
+				DEVELOPMENT_TEAM = "rutti-bep";
 				INFOPLIST_FILE = wallpaperEngine/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
-				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				PRODUCT_BUNDLE_IDENTIFIER = test.wallpaperEngine;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_VERSION = 3.0;
