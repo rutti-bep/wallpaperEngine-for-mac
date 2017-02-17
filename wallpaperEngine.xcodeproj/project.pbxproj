@@ -13,6 +13,8 @@
 		5901D3F31E48648C00E4A035 /* wallpaperEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5901D3F21E48648C00E4A035 /* wallpaperEngineTests.swift */; };
 		5901D3FE1E48648C00E4A035 /* wallpaperEngineUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5901D3FD1E48648C00E4A035 /* wallpaperEngineUITests.swift */; };
 		5901D40D1E4864CC00E4A035 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5901D40C1E4864CC00E4A035 /* CoreGraphics.framework */; };
+		59F1690F1E5680F8001BB711 /* icon.png in Resources */ = {isa = PBXBuildFile; fileRef = 59F1690E1E5680F8001BB711 /* icon.png */; };
+		59F169191E569797001BB711 /* sound@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 59F169181E569797001BB711 /* sound@2x.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,6 +48,8 @@
 		5901D3FF1E48648C00E4A035 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5901D40C1E4864CC00E4A035 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		5931E66E1E4B4457008A5218 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		59F1690E1E5680F8001BB711 /* icon.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = icon.png; sourceTree = "<group>"; };
+		59F169181E569797001BB711 /* sound@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "sound@2x.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +103,7 @@
 		5901D3E11E48648B00E4A035 /* wallpaperEngine */ = {
 			isa = PBXGroup;
 			children = (
+				59B5313B1E5588E1002A6BD1 /* assets */,
 				5901D3E21E48648B00E4A035 /* AppDelegate.swift */,
 				5901D3E41E48648B00E4A035 /* Assets.xcassets */,
 				5901D3E61E48648B00E4A035 /* MainMenu.xib */,
@@ -131,6 +136,15 @@
 				5901D40C1E4864CC00E4A035 /* CoreGraphics.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		59B5313B1E5588E1002A6BD1 /* assets */ = {
+			isa = PBXGroup;
+			children = (
+				59F1690E1E5680F8001BB711 /* icon.png */,
+				59F169181E569797001BB711 /* sound@2x.png */,
+			);
+			name = assets;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -240,8 +254,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				59F1690F1E5680F8001BB711 /* icon.png in Resources */,
 				5901D3E51E48648B00E4A035 /* Assets.xcassets in Resources */,
 				5901D3E81E48648B00E4A035 /* MainMenu.xib in Resources */,
+				59F169191E569797001BB711 /* sound@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

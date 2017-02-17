@@ -34,8 +34,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     var seekbarTimer = Timer()
     var seekBar = NSSlider()
     var moviePlayTimeText = NSTextField()
+    var muteButton = NSButton()
+    var volumeBar = NSSlider()
     
- //   var isMovieRepeat = false
+    let menubarIcon = NSImage(named: "icon.png")
+    let soundIcon = NSImage(named: "sound@2x.png")
     
     func setMovie(fileURL: URL){
         let avAsset = AVURLAsset(url: fileURL)
@@ -46,6 +49,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         seekBar.minValue = 0
         seekBar.maxValue = CMTimeGetSeconds(avAsset.duration)
         movieRunControll()
+        onVolumeValueChange()
     }
 
     func movieRunControll(){
@@ -63,12 +67,26 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         player.seek(to: CMTimeMakeWithSeconds(seekbarValue,Int32(NSEC_PER_SEC)))
     }
     
+    func onVolumeValueChange(){
+        let volumebarValue:Float = Float(volumeBar.floatValue)
+        player.volume = volumebarValue;
+    }
+    
+    func muteToggle(){
+        volumeBar.doubleValue = 0
+        onVolumeValueChange()
+    }
+    
     func seekbarUpdate(){
         if (self.player.currentItem !== nil){
             let duration = CMTimeGetSeconds(self.player.currentItem!.duration)
             let time = CMTimeGetSeconds(self.player.currentTime())
             let value = Float(seekBar.maxValue - seekBar.minValue) * Float(time) / Float(duration) + Float(seekBar.minValue)
             seekBar.setValue(value, forKey: "value")
+            
+            let min = Int(time / 60)
+            let sec = Int(time.truncatingRemainder(dividingBy: 60))
+            moviePlayTimeText.placeholderString = String(format: "%02d:%02d",min, sec)
         }
     }
     
@@ -100,7 +118,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         openPanel.begin { (result) -> Void in
             if result == NSFileHandlingPanelOKButton {                 guard let url = self.openPanel.url else { return }
                 self.setMovie(fileURL: url)
-                print(url.absoluteString)
+                //print(url.absoluteString)
             }
             
         }
@@ -151,10 +169,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             }
         })
         
-        self.statusItem.title = "wallpaper!"
+        //self.statusItem.button?.image = menubarIcon;
         
         if let button = self.statusItem.button {
-            button.image = NSImage(named: "StatusBarButtonImage")
+            button.image = menubarIcon
             button.action = #selector(AppDelegate.togglePopover(_:))
         }
         
@@ -165,6 +183,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         quitButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
         quitButton.frame.origin = NSPoint(x: frame.maxX-100, y: 180)
         quitButton.title = "quit"
+        quitButton.isBordered = false;
         quitButton.action = #selector(AppDelegate.quit)
         popupView.addSubview(quitButton)
         (quitButton.cell as! NSButtonCell).backgroundColor = NSColor.red
@@ -172,32 +191,55 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         selectButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
         selectButton.frame.origin = NSPoint(x: 0, y: 180)
         selectButton.title = "select"
+        selectButton.isBordered = false;
+        (selectButton.cell as! NSButtonCell).backgroundColor = NSColor.blue
         selectButton.action = #selector(AppDelegate.launchFinder)
         popupView.addSubview(selectButton)
         
-        seekBar = NSSlider(frame: NSRect(x: 0, y: 0, width: frame.maxX - 100, height : 20))
-        seekBar.frame.origin = NSPoint(x: 0, y: 10)
+        seekBar = NSSlider(frame: NSRect(x: 0, y: 0, width: frame.maxX - 40, height : 20))
+        seekBar.frame.origin = NSPoint(x: 0, y: 30)
         popupView.addSubview(seekBar)
         
-        /*moviePlayTimeText = NSTextField(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
-        moviePlayTimeText.frame.origin = NSPoint(x: frame.maxX - 100 , y: 20)
+        moviePlayTimeText = NSTextField(frame: NSRect(x: 0, y: 0, width: 50, height: 20))
+        moviePlayTimeText.frame.origin = NSPoint(x: frame.maxX - 85 , y: 10)
         moviePlayTimeText.allowsEditingTextAttributes = false
-        moviePlayTimeText.placeholderString = "hoge"
+        moviePlayTimeText.drawsBackground = false;
+        moviePlayTimeText.isBordered = false;
+        moviePlayTimeText.isEditable = false;
+        moviePlayTimeText.isSelectable = false;
+        moviePlayTimeText.placeholderString = "--:--"
         popupView.addSubview(moviePlayTimeText)
-         */
         
-        repeatButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
+        muteButton = NSButton(frame: NSRect(x: 0, y: 0, width: 24, height: 24))
+        muteButton.frame.origin = NSPoint(x: 80, y: 8)
+        muteButton.image = soundIcon;
+        muteButton.isBordered = false;
+        (muteButton.cell as! NSButtonCell).backgroundColor = NSColor.clear
+        muteButton.action = #selector(AppDelegate.muteToggle)
+        popupView.addSubview(muteButton)
+        
+        volumeBar = NSSlider(frame: NSRect(x: 0, y: 0, width: 100, height : 20))
+        volumeBar.frame.origin = NSPoint(x: frame.maxX/2 - 40, y: 10)
+        volumeBar.action = #selector(AppDelegate.onVolumeValueChange)
+        volumeBar.minValue = 0
+        volumeBar.maxValue = 1
+        volumeBar.doubleValue = 0.5
+        popupView.addSubview(volumeBar)
+        
+        repeatButton = NSButton(frame: NSRect(x: 0, y: 0, width: 60, height: 20))
         repeatButton.title = "repeat"
         repeatButton.setButtonType(NSSwitchButton)
         repeatButton.state = 0
-        repeatButton.frame.origin = NSPoint(x: 200, y: 40)
+        repeatButton.frame.origin = NSPoint(x: 10, y: 10)
         popupView.addSubview(repeatButton)
         
-        runControllButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
-        runControllButton.frame.origin = NSPoint(x: frame.maxX - 100 , y: 20)
+        runControllButton = NSButton(frame: NSRect(x: 0, y: 0, width: 40, height: 40))
+        runControllButton.frame.origin = NSPoint(x: frame.maxX - 40, y: 10)
         runControllButton.title = "start"
+        (runControllButton.cell as! NSButtonCell).backgroundColor = NSColor.clear
         runControllButton.action = #selector(AppDelegate.movieRunControll)
         popupView.addSubview(runControllButton)
+        
         
         popovar.contentViewController = popupViewController
         
