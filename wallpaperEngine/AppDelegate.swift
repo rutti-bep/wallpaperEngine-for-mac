@@ -20,8 +20,13 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     @IBOutlet weak var playerView: AVPlayerView!
     var player = AVPlayer()
     
+    typealias MovieData = Dictionary<String,Any>
+    var playlist:[MovieData] = []
+    var playlistView = NSView()
+    
     let openPanel = NSOpenPanel()
     
+    var popupView = NSView()
     var statusItem = NSStatusBar.system().statusItem(withLength: -1)
     let menu = NSMenu()
     let menuItemRepeat = NSMenuItem()
@@ -42,8 +47,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     let startIcon = NSImage(named: "start@3x.png")
     let stopIcon = NSImage(named: "stop@3x.png")
     
-    func setMovie(fileURL: URL){
-        let avAsset = AVURLAsset(url: fileURL)
+    func setMovie(){
+        guard let filePath = playlist[0]["path"] else {
+            return
+        }
+        let avAsset = AVURLAsset(url: filePath as! URL)
         let Item = AVPlayerItem(asset: avAsset)
         player = AVPlayer(playerItem: Item)
         playerView.player = player
@@ -118,12 +126,49 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         let url:URL = NSURL(fileURLWithPath: path) as URL
         openPanel.directoryURL = url;
         openPanel.begin { (result) -> Void in
-            if result == NSFileHandlingPanelOKButton {                 guard let url = self.openPanel.url else { return }
-                self.setMovie(fileURL: url)
+            if result == NSFileHandlingPanelOKButton {
+                guard let url = self.openPanel.url else { return }
+                self.addPlayList(fileUrl: url)
+                //self.setMovie(fileUrl: url)
                 //print(url.absoluteString)
             }
             
         }
+    }
+    
+    func addPlayList(fileUrl: URL){
+        var movieData:MovieData = ["path": fileUrl];
+        let pathArray = fileUrl.absoluteString.components(separatedBy: "/")
+        let movieName = pathArray[(pathArray.count)-1]
+        let encodeName = movieName.removingPercentEncoding;
+        //print(encodeName ?? "noName?" )
+        let playlistText = NSTextField(frame: NSRect(x: 0, y: 0, width: playlistView.frame.maxX-10, height: 20))
+        playlistText.frame.origin = NSPoint(x: 0, y: playlistView.frame.height-(CGFloat((playlist.count+2)*20)))
+        //print(playlistView.frame.height);
+        playlistText.allowsEditingTextAttributes = false
+        //playlistText.drawsBackground = false;
+        //playlistText.isBordered = true;
+        playlistText.isEditable = false;
+        playlistText.isSelectable = false;
+        playlistText.placeholderString = encodeName
+        
+        movieData["text"] = playlistText;
+        playlistView.addSubview(playlistText)
+        
+        playlist.append(movieData);
+        if (player.rate == 0.0) {
+            setMovie()
+        }
+    }
+    
+    func removePlayList(count:Int){
+        (playlist[count]["text"] as! NSTextField).removeFromSuperview()
+        playlist.remove(at: count)
+        for i in count..<playlist.count {
+            (playlist[i]["text"] as! NSTextField).frame.origin = NSPoint(x: 0, y: playlistView.frame.height-(CGFloat((i+2)*20)))
+            
+        }
+        
     }
     
     func togglePopover(_ sender: AnyObject?) {
@@ -164,9 +209,14 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             DispatchQueue.main.async {
                 if (self.repeatButton.state == 1){
                     self.player.seek(to: kCMTimeZero)
-                    self.player.play()
+                    self.setMovie()
                 } else {
-                    self.runControllButton.title = "start"
+                    self.removePlayList(count: 0)
+                    if(self.playlist.count == 0){
+                        self.runControllButton.image = self.startIcon;
+                    } else {
+                        self.setMovie()
+                    }
                 }
             }
         })
@@ -179,8 +229,13 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         }
         
         let frame = NSRect.init(x: 0, y: 0, width: 300, height: 200)
-        let popupView = NSView.init(frame: frame)
+        popupView = NSView.init(frame: frame)
         popupViewController.view = popupView
+        
+        let playlistFrame = NSRect.init(x: 0, y: 0,width: 280, height: 140)
+        playlistView = NSView.init(frame: playlistFrame)
+        playlistView.frame.origin = NSPoint(x: 10,y: 60)
+        popupView.addSubview(playlistView)
         
         quitButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
         quitButton.frame.origin = NSPoint(x: frame.maxX-100, y: 180)
@@ -198,7 +253,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         selectButton.action = #selector(AppDelegate.launchFinder)
         popupView.addSubview(selectButton)
         
-        seekBar = NSSlider(frame: NSRect(x: 0, y: 0, width: frame.maxX - 40, height : 20))
+        seekBar = NSSlider(frame: NSRect(x: 0, y: 0, width: frame.maxX - 60, height : 20))
         seekBar.frame.origin = NSPoint(x: 0, y: 30)
         popupView.addSubview(seekBar)
         
