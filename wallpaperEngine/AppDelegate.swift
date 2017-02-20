@@ -39,6 +39,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     let menubarIcon = NSImage(named: "icon.png")
     let soundIcon = NSImage(named: "sound@2x.png")
+    let startIcon = NSImage(named: "start@3x.png")
+    let stopIcon = NSImage(named: "stop@3x.png")
     
     func setMovie(fileURL: URL){
         let avAsset = AVURLAsset(url: fileURL)
@@ -55,10 +57,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     func movieRunControll(){
         if (player.rate == 0.0) {
             player.play()
-            runControllButton.title = "stop"
+            runControllButton.image = stopIcon;
         } else {
             player.pause()
-            runControllButton.title = "start"
+            runControllButton.image = startIcon;
         }
     }
     
@@ -233,9 +235,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         repeatButton.frame.origin = NSPoint(x: 10, y: 10)
         popupView.addSubview(repeatButton)
         
-        runControllButton = NSButton(frame: NSRect(x: 0, y: 0, width: 40, height: 40))
-        runControllButton.frame.origin = NSPoint(x: frame.maxX - 40, y: 10)
-        runControllButton.title = "start"
+        runControllButton = NSButton(frame: NSRect(x: 0, y: 0, width: 43, height: 43))
+        runControllButton.frame.origin = NSPoint(x: frame.maxX - 43, y: 10)
+        runControllButton.image = startIcon;
+        runControllButton.isBordered = false;
         (runControllButton.cell as! NSButtonCell).backgroundColor = NSColor.clear
         runControllButton.action = #selector(AppDelegate.movieRunControll)
         popupView.addSubview(runControllButton)
