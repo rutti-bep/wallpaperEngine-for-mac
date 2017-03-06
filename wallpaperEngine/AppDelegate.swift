@@ -20,9 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     @IBOutlet weak var playerView: AVPlayerView!
     var player = AVPlayer()
     
-    typealias MovieData = Dictionary<String,Any>
-    var playlist:[MovieData] = []
-    var playlistView = NSView()
+    var playlist = PlayList();
     
     let openPanel = NSOpenPanel()
     
@@ -32,14 +30,14 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     let menuItemRepeat = NSMenuItem()
     let popovar = NSPopover()
     var popupViewController = NSViewController()
-    var quitButton = NSButton()
-    var selectButton = NSButton()
-    var runControllButton = NSButton()
+    var quitButton = SuperButton()
+    var selectButton = SuperButton()
+    var runControllButton = SuperButton()
     var repeatButton = NSButton()
     var seekbarTimer = Timer()
     var seekBar = NSSlider()
-    var moviePlayTimeText = NSTextField()
-    var muteButton = NSButton()
+    var moviePlayTimeText = Label()
+    var muteButton = SuperButton()
     var volumeBar = NSSlider()
     
     let menubarIcon = NSImage(named: "icon.png")
@@ -48,7 +46,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     let stopIcon = NSImage(named: "stop@3x.png")
     
     func setMovie(){
-        guard let filePath = playlist[0]["path"] else {
+        guard let filePath = playlist.playlist[playlist.selector]["path"] else {
             return
         }
         let avAsset = AVURLAsset(url: filePath as! URL)
@@ -58,7 +56,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         seekBar.action = #selector(AppDelegate.onSeekbarValueChange)
         seekBar.minValue = 0
         seekBar.maxValue = CMTimeGetSeconds(avAsset.duration)
-        movieRunControll()
+        if(player.rate == 0.0){
+            movieRunControll()
+        }
         onVolumeValueChange()
     }
 
@@ -96,7 +96,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             
             let min = Int(time / 60)
             let sec = Int(time.truncatingRemainder(dividingBy: 60))
-            moviePlayTimeText.placeholderString = String(format: "%02d:%02d",min, sec)
+            moviePlayTimeText.text = String(format: "%02d:%02d",min, sec)
         }
     }
     
@@ -128,47 +128,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         openPanel.begin { (result) -> Void in
             if result == NSFileHandlingPanelOKButton {
                 guard let url = self.openPanel.url else { return }
-                self.addPlayList(fileUrl: url)
-                //self.setMovie(fileUrl: url)
+                self.playlist.add(filePath: url)
                 //print(url.absoluteString)
             }
             
         }
-    }
-    
-    func addPlayList(fileUrl: URL){
-        var movieData:MovieData = ["path": fileUrl];
-        let pathArray = fileUrl.absoluteString.components(separatedBy: "/")
-        let movieName = pathArray[(pathArray.count)-1]
-        let encodeName = movieName.removingPercentEncoding;
-        //print(encodeName ?? "noName?" )
-        let playlistText = NSTextField(frame: NSRect(x: 0, y: 0, width: playlistView.frame.maxX-10, height: 20))
-        playlistText.frame.origin = NSPoint(x: 0, y: playlistView.frame.height-(CGFloat((playlist.count+2)*20)))
-        //print(playlistView.frame.height);
-        playlistText.allowsEditingTextAttributes = false
-        //playlistText.drawsBackground = false;
-        //playlistText.isBordered = true;
-        playlistText.isEditable = false;
-        playlistText.isSelectable = false;
-        playlistText.placeholderString = encodeName
-        
-        movieData["text"] = playlistText;
-        playlistView.addSubview(playlistText)
-        
-        playlist.append(movieData);
-        if (player.rate == 0.0) {
-            setMovie()
-        }
-    }
-    
-    func removePlayList(count:Int){
-        (playlist[count]["text"] as! NSTextField).removeFromSuperview()
-        playlist.remove(at: count)
-        for i in count..<playlist.count {
-            (playlist[i]["text"] as! NSTextField).frame.origin = NSPoint(x: 0, y: playlistView.frame.height-(CGFloat((i+2)*20)))
-            
-        }
-        
     }
     
     func togglePopover(_ sender: AnyObject?) {
@@ -207,17 +171,17 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
             DispatchQueue.main.async {
-                if (self.repeatButton.state == 1){
-                    self.player.seek(to: kCMTimeZero)
-                    self.setMovie()
-                } else {
-                    self.removePlayList(count: 0)
-                    if(self.playlist.count == 0){
-                        self.runControllButton.image = self.startIcon;
-                    } else {
+                self.playlist.selector += 1;
+                if(self.playlist.playlist.count == self.playlist.selector){
+                    self.playlist.selector = 0;
+                    if (self.repeatButton.state == 1){
+                        self.player.seek(to: kCMTimeZero)
                         self.setMovie()
                     }
+                }else{
+                    self.setMovie();
                 }
+                self.playlist.drawView()
             }
         })
         
@@ -232,51 +196,36 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         popupView = NSView.init(frame: frame)
         popupViewController.view = popupView
         
-        let playlistFrame = NSRect.init(x: 0, y: 0,width: 280, height: 140)
-        playlistView = NSView.init(frame: playlistFrame)
-        playlistView.frame.origin = NSPoint(x: 10,y: 60)
-        popupView.addSubview(playlistView)
+        playlist.create(x: 10, y: 70, width: 280, height: 120)
+        playlist.setUp();
+        //playerView = NSView(frame: playlistFrame)
+        popupView.addSubview(playlist)
         
-        quitButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
-        quitButton.frame.origin = NSPoint(x: frame.maxX-100, y: 180)
+        quitButton.create(x: frame.maxX-100, y: 180, width: 100, height: 20,action:#selector(AppDelegate.quit))
         quitButton.title = "quit"
         quitButton.isBordered = false;
-        quitButton.action = #selector(AppDelegate.quit)
         popupView.addSubview(quitButton)
-        (quitButton.cell as! NSButtonCell).backgroundColor = NSColor.red
+        quitButton.backgroundColor = NSColor.red
         
-        selectButton = NSButton(frame: NSRect(x: 0, y: 0, width: 100, height: 20))
-        selectButton.frame.origin = NSPoint(x: 0, y: 180)
+        selectButton.create(x: 0, y: 180, width: 100, height: 20,action: #selector(AppDelegate.launchFinder))
         selectButton.title = "select"
         selectButton.isBordered = false;
-        (selectButton.cell as! NSButtonCell).backgroundColor = NSColor.blue
-        selectButton.action = #selector(AppDelegate.launchFinder)
+        selectButton.backgroundColor = NSColor.blue
         popupView.addSubview(selectButton)
         
-        seekBar = NSSlider(frame: NSRect(x: 0, y: 0, width: frame.maxX - 60, height : 20))
-        seekBar.frame.origin = NSPoint(x: 0, y: 30)
+        seekBar = NSSlider(frame: NSRect(x: 0, y: 30, width: frame.maxX - 60, height : 20))
         popupView.addSubview(seekBar)
         
-        moviePlayTimeText = NSTextField(frame: NSRect(x: 0, y: 0, width: 50, height: 20))
-        moviePlayTimeText.frame.origin = NSPoint(x: frame.maxX - 85 , y: 10)
-        moviePlayTimeText.allowsEditingTextAttributes = false
-        moviePlayTimeText.drawsBackground = false;
-        moviePlayTimeText.isBordered = false;
-        moviePlayTimeText.isEditable = false;
-        moviePlayTimeText.isSelectable = false;
-        moviePlayTimeText.placeholderString = "--:--"
+        moviePlayTimeText.create(x: frame.maxX - 85 , y: 10, width: 50, height: 20,defaultText: "--:--")
         popupView.addSubview(moviePlayTimeText)
         
-        muteButton = NSButton(frame: NSRect(x: 0, y: 0, width: 24, height: 24))
-        muteButton.frame.origin = NSPoint(x: 80, y: 8)
+        muteButton.create(x:80,y:8,width:24,height:24,action:#selector(AppDelegate.muteToggle))
         muteButton.image = soundIcon;
         muteButton.isBordered = false;
-        (muteButton.cell as! NSButtonCell).backgroundColor = NSColor.clear
-        muteButton.action = #selector(AppDelegate.muteToggle)
+        muteButton.backgroundColor = NSColor.clear
         popupView.addSubview(muteButton)
         
-        volumeBar = NSSlider(frame: NSRect(x: 0, y: 0, width: 100, height : 20))
-        volumeBar.frame.origin = NSPoint(x: frame.maxX/2 - 40, y: 10)
+        volumeBar = NSSlider(frame: NSRect(x: frame.maxX/2 - 40, y: 10, width: 100, height : 20))
         volumeBar.action = #selector(AppDelegate.onVolumeValueChange)
         volumeBar.minValue = 0
         volumeBar.maxValue = 1
@@ -290,12 +239,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         repeatButton.frame.origin = NSPoint(x: 10, y: 10)
         popupView.addSubview(repeatButton)
         
-        runControllButton = NSButton(frame: NSRect(x: 0, y: 0, width: 43, height: 43))
-        runControllButton.frame.origin = NSPoint(x: frame.maxX - 43, y: 10)
+        runControllButton.create(x: frame.maxX - 43, y: 10, width: 43, height: 43,action:#selector(AppDelegate.movieRunControll))
         runControllButton.image = startIcon;
         runControllButton.isBordered = false;
-        (runControllButton.cell as! NSButtonCell).backgroundColor = NSColor.clear
-        runControllButton.action = #selector(AppDelegate.movieRunControll)
+        runControllButton.backgroundColor = NSColor.clear
         popupView.addSubview(runControllButton)
         
         

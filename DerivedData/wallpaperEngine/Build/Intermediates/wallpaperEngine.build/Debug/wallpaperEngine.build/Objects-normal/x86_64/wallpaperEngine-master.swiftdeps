@@ -1,0 +1,5 @@
+version: "Apple Swift version 3.0.2 (swiftlang-800.0.63 clang-800.0.42.1)"
+options: "7565d5661de57c4f710b375401e5429a"
+build_time: [540525080, 960737000]
+inputs:
+  "/Users/konnosatoru/src/github.com/rutti-bep/wallpaperEngine/wallpaperEngine/AppDelegate.swift": [540280232, 0]
