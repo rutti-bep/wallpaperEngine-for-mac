@@ -196,7 +196,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         popupView = NSView.init(frame: frame)
         popupViewController.view = popupView
         
-        playlist.create(x: 10, y: 70, width: 280, height: 120)
+        playlist.create(x: 10, y: 60, width: 280, height: 100)
         playlist.setUp();
         //playerView = NSView(frame: playlistFrame)
         popupView.addSubview(playlist)

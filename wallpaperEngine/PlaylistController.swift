@@ -15,9 +15,10 @@ class PlayList: NSView{
     var selector = 0;
     
     var viewSize = NSRect(x:0,y:0,width:0,height:0)
-    let defaultLabelCount = 6;
+    let defaultLabelCount = 5;
     
     var playlistViewLabel:[SuperButton] = []
+    var viewSelector = 0;
     
     func create(x:CGFloat,y:CGFloat,width:CGFloat, height:CGFloat){
         viewSize = NSRect(x: x,y: y,width: width, height: height)
@@ -39,14 +40,16 @@ class PlayList: NSView{
     }
     
     func increment(_ sender: SuperButton){
-        self.selector += sender.tag;
-        if playlist.count < selector {
-            selector = 0
+        if playlist.count >= defaultLabelCount{
+            self.viewSelector += sender.tag;
+            if playlist.count <= viewSelector+defaultLabelCount {
+                viewSelector = playlist.count-defaultLabelCount
+            }
+            if 0 >= viewSelector {
+                viewSelector = 0
+            }
+            self.drawView()
         }
-        if 0 > selector {
-            selector = playlist.count
-        }
-        self.drawView()
     }
     
     func movieJump(_ sender: SuperButton){
@@ -62,22 +65,25 @@ class PlayList: NSView{
             playlistViewLabel.remove(at: 0)
         }
         if(playlist.count >= 0){
-            if(playlist.count <= selector){
+            if(playlist.count <= viewSelector){
                 selector = 0;
             }
-            for i in 0..<defaultLabelCount {
-                Swift.print (playlist)
-                if(playlist.count <= selector+i){
+            for i in 0...defaultLabelCount {
+                if(playlist.count <= viewSelector+i){
                     break;
                 }
-                if(playlist[selector+i]["path"] != nil){
+                if(playlist[viewSelector+i]["path"] != nil){
                     let playlistLabel = SuperButton();
-                    playlistLabel.create(x:0,y:(viewSize.height/CGFloat(defaultLabelCount))*CGFloat(defaultLabelCount-i-2),width:viewSize.width-30,height:(viewSize.height/CGFloat(defaultLabelCount)))
-                    playlistLabel.title = playlist[selector+i]["name"] as! String
+                    playlistLabel.create(x:0,y:(viewSize.height/CGFloat(defaultLabelCount))*CGFloat(defaultLabelCount-i-1),width:viewSize.width-30,height:(viewSize.height/CGFloat(defaultLabelCount)))
+                    playlistLabel.title = playlist[viewSelector+i]["name"] as! String
                     playlistLabel.target = self
-                    playlistLabel.tag = selector+i
+                    playlistLabel.tag = viewSelector+i
                     playlistLabel.action = #selector(PlayList.movieJump(_:))
-                    playlistLabel.backgroundColor = NSColor.clear
+                    if viewSelector+i == selector {
+                        playlistLabel.backgroundColor = NSColor.red
+                    } else {
+                        playlistLabel.backgroundColor = NSColor.clear
+                    }
                     playlistViewLabel.append(playlistLabel)
                     self.addSubview(playlistViewLabel[i])
                     
@@ -88,7 +94,7 @@ class PlayList: NSView{
     
     func setUp(){
         let decrementButton = SuperButton();
-        decrementButton.create(x:viewSize.width-30,y:(viewSize.height/CGFloat(defaultLabelCount))*CGFloat(defaultLabelCount-2),width:30,height:(viewSize.height/CGFloat(defaultLabelCount)))
+        decrementButton.create(x:viewSize.width-30,y:(viewSize.height/CGFloat(defaultLabelCount))*CGFloat(defaultLabelCount-1),width:30,height:(viewSize.height/CGFloat(defaultLabelCount)))
         decrementButton.title = "mae"
         decrementButton.target = self
         decrementButton.tag = -1
