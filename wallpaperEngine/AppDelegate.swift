@@ -197,8 +197,6 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         popupViewController.view = popupView
         
         playlist.create(x: 10, y: 60, width: 280, height: 100)
-        playlist.setUp();
-        //playerView = NSView(frame: playlistFrame)
         popupView.addSubview(playlist)
         
         quitButton.create(x: frame.maxX-100, y: 180, width: 100, height: 20,action:#selector(AppDelegate.quit))

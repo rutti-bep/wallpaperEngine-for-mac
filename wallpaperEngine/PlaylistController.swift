@@ -1,3 +1,4 @@
+
 //
 //  PlaylistController.swift
 //  wallpaperEngine
@@ -9,20 +10,28 @@
 import Foundation
 import AppKit
 
-class PlayList: NSView{
+class PlayList: NSScrollView{
     typealias MovieData = Dictionary<String,Any>
     var playlist:[MovieData] = []
     var selector = 0;
     
-    var viewSize = NSRect(x:0,y:0,width:0,height:0)
+    var viewSize:NSRect?;
+    var playlistViewSize:NSRect?
     let defaultLabelCount = 5;
     
-    var playlistViewLabel:[SuperButton] = []
+    var playlistView = NSView();
+    var playlistViewLabel:[PlayListButton] = []
     var viewSelector = 0;
     
     func create(x:CGFloat,y:CGFloat,width:CGFloat, height:CGFloat){
+        playlistViewSize = NSRect(x: 0,y: 0,width: width, height: (height/CGFloat(defaultLabelCount))*CGFloat(playlist.count))
+        playlistView.frame = playlistViewSize!;
+        self.documentView = playlistView
+        self.drawsBackground = false
         viewSize = NSRect(x: x,y: y,width: width, height: height)
-        self.frame = viewSize;
+        self.hasVerticalScroller = true;
+        self.contentView.scroll(NSPoint(x:0,y:(playlistViewSize?.height)!))
+        self.frame = viewSize!;
     }
     
     func add(filePath:URL){
@@ -35,8 +44,30 @@ class PlayList: NSView{
         self.drawView();
     }
     
-    func remove(movieId:Int){
+    func replace(from:Int, at:Int){
+        let replaceItem = playlist[from]
+        playlist.remove(at: from)
+        if (from+at > playlist.count){
+            playlist += [replaceItem]
+        } else if(from+at < 0){
+            self.playlist.insert(replaceItem, at: 0)
+        } else {
+            self.playlist.insert(replaceItem, at: from+at)
+        }
         
+        if selector == from {
+            selector = from+at
+        } else if at < 0 && from > selector{
+            selector += 1
+        } else if at > 0 && from+at <= selector{
+            selector -= 1
+        }
+        drawView()
+    }
+    
+    func deleteItem(_ at:Int){
+        playlist.remove(at: at)
+        drawView()
     }
     
     func increment(_ sender: SuperButton){
@@ -60,6 +91,8 @@ class PlayList: NSView{
     }
     
     func drawView(){
+        playlistViewSize = NSRect(x: 0,y: 0,width: (playlistViewSize?.width)!, height: CGFloat(((viewSize?.height)!/CGFloat(defaultLabelCount))*CGFloat(playlist.count)))
+        playlistView.frame = playlistViewSize!;
         while playlistViewLabel.count != 0 {
             playlistViewLabel[0].removeFromSuperview()
             playlistViewLabel.remove(at: 0)
@@ -68,46 +101,55 @@ class PlayList: NSView{
             if(playlist.count <= viewSelector){
                 selector = 0;
             }
-            for i in 0...defaultLabelCount {
-                if(playlist.count <= viewSelector+i){
-                    break;
-                }
-                if(playlist[viewSelector+i]["path"] != nil){
-                    let playlistLabel = SuperButton();
-                    playlistLabel.create(x:0,y:(viewSize.height/CGFloat(defaultLabelCount))*CGFloat(defaultLabelCount-i-1),width:viewSize.width-30,height:(viewSize.height/CGFloat(defaultLabelCount)))
-                    playlistLabel.title = playlist[viewSelector+i]["name"] as! String
+            for i in 0..<playlist.count {
+                if(playlist[i]["path"] != nil){
+                    let playlistLabel = PlayListButton();
+                    playlistLabel.create(x:0,y:((playlistViewSize?.height)!-(((viewSize?.height)!/CGFloat(defaultLabelCount))*CGFloat(i+1))),width:(viewSize?.width)!,height:((viewSize?.height)!/CGFloat(defaultLabelCount)))
+                    playlistLabel.title = playlist[i]["name"] as! String
                     playlistLabel.target = self
-                    playlistLabel.tag = viewSelector+i
-                    playlistLabel.action = #selector(PlayList.movieJump(_:))
-                    if viewSelector+i == selector {
+                    playlistLabel.tag = i
+                    playlistLabel.action = #selector(self.movieJump(_:))
+                    if i == selector {
                         playlistLabel.backgroundColor = NSColor.red
                     } else {
                         playlistLabel.backgroundColor = NSColor.clear
                     }
                     playlistViewLabel.append(playlistLabel)
-                    self.addSubview(playlistViewLabel[i])
+                    playlistView.addSubview(playlistViewLabel[i])
                     
                 }
             }
         }
     }
     
-    func setUp(){
-        let decrementButton = SuperButton();
-        decrementButton.create(x:viewSize.width-30,y:(viewSize.height/CGFloat(defaultLabelCount))*CGFloat(defaultLabelCount-1),width:30,height:(viewSize.height/CGFloat(defaultLabelCount)))
-        decrementButton.title = "mae"
-        decrementButton.target = self
-        decrementButton.tag = -1
-        decrementButton.action = #selector(increment(_:))
-        self.addSubview(decrementButton)
+}
 
-        let incrementButton = SuperButton();
-        incrementButton.create(x:viewSize.width-30,y:(viewSize.height/CGFloat(defaultLabelCount))*CGFloat(defaultLabelCount-defaultLabelCount),width:30,height:(viewSize.height/CGFloat(defaultLabelCount)))
-        incrementButton.title = "tugi"
-        incrementButton.target = self
-        incrementButton.tag = 1
-        incrementButton.action = #selector(increment(_:))
-        self.addSubview(incrementButton)
+class PlayListButton: SuperButton {
+    var stockPositionX:CGFloat?;
+    var stockPositionY:CGFloat?;
+   // var parent:PlayList?;
+    
+    override func mouseDown(with theEvent: NSEvent) {
+        stockPositionX = self.frame.origin.x
+        stockPositionY = self.frame.origin.y
+    }
+    
+    override func mouseUp(with theEvent: NSEvent) {
+        if(Float(self.frame.width/2) < fabs(Float(self.frame.origin.x)-Float(stockPositionX!))){
+            self.target?.deleteItem(self.tag)
+        } else if(self.frame.origin.x == stockPositionX && self.frame.origin.y == stockPositionY){
+            super.mouseDown(with: theEvent)
+        } else {
+            self.target?.replace(from: self.tag, at: Int((stockPositionY!-self.frame.origin.y)/CGFloat(self.frame.height)))
+        }
+    }
+    
+    override func mouseDragged(with theEvent: NSEvent){
+        self.frame.origin.x += theEvent.deltaX
+        self.frame.origin.y -= theEvent.deltaY
+        self.layer?.zPosition = 0
     }
 }
+
+
 
