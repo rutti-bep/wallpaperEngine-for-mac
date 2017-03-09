@@ -9,6 +9,7 @@
 import Cocoa
 import AppKit
 import AVKit
+import WebKit
 import Foundation
 import AVFoundation
 
@@ -17,7 +18,11 @@ import AVFoundation
 class AppDelegate: NSObject, NSApplicationDelegate{
 
     @IBOutlet weak var window: NSWindow!
-    @IBOutlet weak var playerView: AVPlayerView!
+    
+    var isToggleView:Bool = false
+    var webView = WebView()
+    
+    var playerView = AVPlayerView()
     var player = AVPlayer()
     
     var playlist = PlayList();
@@ -40,12 +45,27 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     var muteButton = SuperButton()
     var volumeBar = NSSlider()
     
+    var windowLevelChangeButton = SuperButton()
+    var urlInput = NSTextField()
+    
     let menubarIcon = NSImage(named: "icon.png")
     let soundIcon = NSImage(named: "sound@2x.png")
     let startIcon = NSImage(named: "start@3x.png")
     let stopIcon = NSImage(named: "stop@3x.png")
     
+    func toggleView(){
+        if isToggleView {
+            playerView.removeFromSuperview()
+            window.contentView?.addSubview(webView)
+        } else {
+            webView.removeFromSuperview()
+            window.contentView?.addSubview(playerView)
+        }
+    }
+    
     func setMovie(){
+        isToggleView = false
+        toggleView()
         guard let filePath = playlist.playlist[playlist.selector]["path"] else {
             return
         }
@@ -70,6 +90,16 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             player.pause()
             runControllButton.image = startIcon;
         }
+    }
+    
+    func setUrl (){
+        isToggleView = true
+        toggleView()
+        let url = URL(string: urlInput.stringValue)
+        let req = URLRequest(url: url!)
+        webView.mainFrame.load(req as URLRequest!);
+        player.pause()
+        print(url ?? "nil")
     }
     
     func onSeekbarValueChange(){
@@ -111,8 +141,23 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             let point = NSPoint(x: 0, y: 0)
             window.setFrameOrigin(point)
             window.setContentSize(size)
+            
+            playerView.frame.size = size
+            webView.frame.size = size
+            
+            toggleView()
         }
         
+    }
+    
+    func windowLevelChange(){
+        if window.level == Int(CGWindowLevelForKey(.desktopWindow)) {
+            window.level = Int(CGWindowLevelForKey(.floatingWindow))
+            windowLevelChangeButton.title = "toBehind"
+        } else {
+            window.level = Int(CGWindowLevelForKey(.desktopWindow))
+            windowLevelChangeButton.title = "toFront"
+        }
     }
     
     func launchFinder(){
@@ -148,7 +193,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             popovar.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
             seekbarUpdate()
             seekbarTimer = Timer.scheduledTimer(
-                timeInterval: 0.1,
+                timeInterval: 1,
                 target: self,
                 selector: #selector(AppDelegate.seekbarUpdate),
                 userInfo: nil,
@@ -167,14 +212,14 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         self.setWindow()
-        self.launchFinder()
+        //self.launchFinder()
         
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
             DispatchQueue.main.async {
                 self.playlist.selector += 1;
-                if(self.playlist.playlist.count == self.playlist.selector){
+                if(self.playlist.playlist.count <= self.playlist.selector){
                     self.playlist.selector = 0;
-                    if (self.repeatButton.state == 1){
+                    if (self.repeatButton.state == 1 && self.playlist.playlist.count > 0){
                         self.player.seek(to: kCMTimeZero)
                         self.setMovie()
                     }
@@ -199,8 +244,18 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         playlist.create(x: 10, y: 60, width: 280, height: 100)
         popupView.addSubview(playlist)
         
-        quitButton.create(x: frame.maxX-100, y: 180, width: 100, height: 20,action:#selector(AppDelegate.quit))
-        quitButton.title = "quit"
+        urlInput.frame = NSRect(x:100,y:180,width:100,height:20)
+        urlInput.action = #selector(AppDelegate.setUrl)
+        popupView.addSubview(urlInput)
+        
+        windowLevelChangeButton.create(x: frame.maxX-100, y: 180, width: 80, height: 20,action:#selector(AppDelegate.windowLevelChange))
+        windowLevelChangeButton.title = "toFront"
+        windowLevelChangeButton.isBordered = false;
+        popupView.addSubview(windowLevelChangeButton)
+        windowLevelChangeButton.backgroundColor = NSColor.yellow
+        
+        quitButton.create(x: frame.maxX-20, y: 180, width: 20, height: 20,action:#selector(AppDelegate.quit))
+        quitButton.title = "x"
         quitButton.isBordered = false;
         popupView.addSubview(quitButton)
         quitButton.backgroundColor = NSColor.red
@@ -242,7 +297,6 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         runControllButton.isBordered = false;
         runControllButton.backgroundColor = NSColor.clear
         popupView.addSubview(runControllButton)
-        
         
         popovar.contentViewController = popupViewController
         

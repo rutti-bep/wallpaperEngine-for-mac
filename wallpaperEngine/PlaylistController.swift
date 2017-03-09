@@ -24,7 +24,7 @@ class PlayList: NSScrollView{
     var viewSelector = 0;
     
     func create(x:CGFloat,y:CGFloat,width:CGFloat, height:CGFloat){
-        playlistViewSize = NSRect(x: 0,y: 0,width: width, height: (height/CGFloat(defaultLabelCount))*CGFloat(playlist.count))
+        playlistViewSize = NSRect(x: 0,y: 0,width: width, height: (height/CGFloat(defaultLabelCount))*CGFloat(minimumGuarantee(playlist.count)))
         playlistView.frame = playlistViewSize!;
         self.documentView = playlistView
         self.drawsBackground = false
@@ -45,9 +45,23 @@ class PlayList: NSScrollView{
     }
     
     func replace(from:Int, at:Int){
+        if selector == from {
+            if(from+at >= playlist.count){
+                selector = playlist.count-1
+            }else if (from+at < 0){
+                selector = 0
+            }else{
+                selector = from+at
+            }
+        } else if at < 0 && from > selector && from+at <= selector{
+            selector += 1
+        } else if at > 0 && from < selector && from+at >= selector{
+            selector -= 1
+        }
+        
         let replaceItem = playlist[from]
         playlist.remove(at: from)
-        if (from+at > playlist.count){
+        if (from+at >= playlist.count){
             playlist += [replaceItem]
         } else if(from+at < 0){
             self.playlist.insert(replaceItem, at: 0)
@@ -55,18 +69,14 @@ class PlayList: NSScrollView{
             self.playlist.insert(replaceItem, at: from+at)
         }
         
-        if selector == from {
-            selector = from+at
-        } else if at < 0 && from > selector{
-            selector += 1
-        } else if at > 0 && from+at <= selector{
-            selector -= 1
-        }
         drawView()
     }
     
     func deleteItem(_ at:Int){
         playlist.remove(at: at)
+        if selector > at {
+            selector -= 1
+        }
         drawView()
     }
     
@@ -91,7 +101,7 @@ class PlayList: NSScrollView{
     }
     
     func drawView(){
-        playlistViewSize = NSRect(x: 0,y: 0,width: (playlistViewSize?.width)!, height: CGFloat(((viewSize?.height)!/CGFloat(defaultLabelCount))*CGFloat(playlist.count)))
+        playlistViewSize = NSRect(x: 0,y: 0,width: (playlistViewSize?.width)!, height: CGFloat(((viewSize?.height)!/CGFloat(defaultLabelCount))*CGFloat(minimumGuarantee(playlist.count))))
         playlistView.frame = playlistViewSize!;
         while playlistViewLabel.count != 0 {
             playlistViewLabel[0].removeFromSuperview()
@@ -122,6 +132,16 @@ class PlayList: NSScrollView{
         }
     }
     
+    func minimumGuarantee (_ value:Int) -> Int{
+        var returnValue = 0;
+        if (value > defaultLabelCount){
+            returnValue = value
+        }else{
+            returnValue = defaultLabelCount
+        }
+        return returnValue
+    }
+    
 }
 
 class PlayListButton: SuperButton {
@@ -130,6 +150,7 @@ class PlayListButton: SuperButton {
    // var parent:PlayList?;
     
     override func mouseDown(with theEvent: NSEvent) {
+        self.target?.playlistView.addSubview(self)
         stockPositionX = self.frame.origin.x
         stockPositionY = self.frame.origin.y
     }
@@ -147,7 +168,6 @@ class PlayListButton: SuperButton {
     override func mouseDragged(with theEvent: NSEvent){
         self.frame.origin.x += theEvent.deltaX
         self.frame.origin.y -= theEvent.deltaY
-        self.layer?.zPosition = 0
     }
 }
 
