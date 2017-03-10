@@ -24,6 +24,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     var player = AVPlayer()
     
     var playlist = PlayList();
+    var urlPlayList = PlayList();
     
     let openPanel = NSOpenPanel()
     
@@ -90,6 +91,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         let req = URLRequest(url: url!)
         self.webView.load(req);
         print(url!)
+    }
+    
+    func addUrl (){
+        //urlPlayList.add(file webModeView.urlInput.stringValue)
     }
     
     func movieRunControll(){
@@ -160,7 +165,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             
         }
     }
-    
+   
     func togglePopover(_ sender: AnyObject?) {
         if popovar.isShown {
             closePopover(sender)
