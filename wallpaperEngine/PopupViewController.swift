@@ -11,10 +11,15 @@ import Foundation
 import AppKit
 
 class SuperButton: NSButton {
-    func create(x:CGFloat,y:CGFloat,width:CGFloat,height:CGFloat,action:Selector? = nil){
+    func create(title:String? = nil,x:CGFloat,y:CGFloat,width:CGFloat,height:CGFloat,action:Selector? = nil,target:AnyObject? = nil){
         self.frame = NSRect(x:x,y:y,width:width,height:height)
+        if (title != nil){
+            self.title = title!
+        }
+        if (target != nil){
+            self.target = target
+        }
         self.action = action
-        //self.target = self
     }
     
     var backgroundColor: NSColor {

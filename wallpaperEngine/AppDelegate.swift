@@ -3,7 +3,7 @@
 //  wallpaperEngine
 //
 //  Created by 今野暁 on 2017/02/06.
-//  Copyright © 2017年 今野暁. All rights reserved.
+//  Copyright © 2017年 今野暁. All rights reserved. 
 //
 
 import Cocoa
@@ -13,14 +13,12 @@ import WebKit
 import Foundation
 import AVFoundation
 
-
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate{
 
     @IBOutlet weak var window: NSWindow!
     
-    var isToggleView:Bool = false
-    var webView = WebView()
+    var webView = WKWebView()
     
     var playerView = AVPlayerView()
     var player = AVPlayer()
@@ -29,43 +27,48 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     let openPanel = NSOpenPanel()
     
-    var popupView = NSView()
     var statusItem = NSStatusBar.system().statusItem(withLength: -1)
-    let menu = NSMenu()
-    let menuItemRepeat = NSMenuItem()
-    let popovar = NSPopover()
-    var popupViewController = NSViewController()
-    var quitButton = SuperButton()
-    var selectButton = SuperButton()
-    var runControllButton = SuperButton()
-    var repeatButton = NSButton()
-    var seekbarTimer = Timer()
-    var seekBar = NSSlider()
-    var moviePlayTimeText = Label()
-    var muteButton = SuperButton()
-    var volumeBar = NSSlider()
     
-    var windowLevelChangeButton = SuperButton()
-    var urlInput = NSTextField()
+    let popovar = NSPopover()
+    var popupView = NSView()
+    var popupViewController = NSViewController()
+    
+    var movieModeButton = SuperButton()
+    var webModeButton = SuperButton()
+    var quitButton = SuperButton()
+    
+    var movieModeView = MovieModeView()
+    
+    var webModeView = WebModeView()
     
     let menubarIcon = NSImage(named: "icon.png")
-    let soundIcon = NSImage(named: "sound@2x.png")
-    let startIcon = NSImage(named: "start@3x.png")
-    let stopIcon = NSImage(named: "stop@3x.png")
     
-    func toggleView(){
-        if isToggleView {
-            playerView.removeFromSuperview()
-            window.contentView?.addSubview(webView)
-        } else {
-            webView.removeFromSuperview()
-            window.contentView?.addSubview(playerView)
+    func movieMode(){
+        webView.stopLoading()
+        webView.reload()
+        
+        webView.removeFromSuperview()
+        webModeView.hide()
+        
+        window.contentView?.addSubview(playerView)
+        popupView.addSubview(movieModeView)
+        popupView.addSubview(playlist)
+    }
+    
+    func webMode(){
+        if(player.rate != 0.0){
+            player.pause()
         }
+        
+        playerView.removeFromSuperview()
+        playlist.removeFromSuperview()
+        movieModeView.hide()
+        
+        window.contentView?.addSubview(webView)
+        popupView.addSubview(webModeView)
     }
     
     func setMovie(){
-        isToggleView = false
-        toggleView()
         guard let filePath = playlist.playlist[playlist.selector]["path"] else {
             return
         }
@@ -73,64 +76,33 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         let Item = AVPlayerItem(asset: avAsset)
         player = AVPlayer(playerItem: Item)
         playerView.player = player
-        seekBar.action = #selector(AppDelegate.onSeekbarValueChange)
-        seekBar.minValue = 0
-        seekBar.maxValue = CMTimeGetSeconds(avAsset.duration)
+        movieModeView.seekBar.minValue = 0
+        movieModeView.seekBar.maxValue = CMTimeGetSeconds(avAsset.duration)
         if(player.rate == 0.0){
-            movieRunControll()
+            self.movieRunControll()
         }
-        onVolumeValueChange()
-    }
-
-    func movieRunControll(){
-        if (player.rate == 0.0) {
-            player.play()
-            runControllButton.image = stopIcon;
-        } else {
-            player.pause()
-            runControllButton.image = startIcon;
-        }
+        movieModeView.onVolumeValueChange()
     }
     
     func setUrl (){
-        isToggleView = true
-        toggleView()
-        let url = URL(string: urlInput.stringValue)
+        webView.stopLoading()
+        let url = URL(string: webModeView.urlInput.stringValue)
         let req = URLRequest(url: url!)
-        webView.mainFrame.load(req as URLRequest!);
-        player.pause()
-        print(url ?? "nil")
+        self.webView.load(req);
+        print(url!)
     }
     
-    func onSeekbarValueChange(){
-        let seekbarValue:Float64 = Float64(seekBar.floatValue)
-        player.seek(to: CMTimeMakeWithSeconds(seekbarValue,Int32(NSEC_PER_SEC)))
-    }
-    
-    func onVolumeValueChange(){
-        let volumebarValue:Float = Float(volumeBar.floatValue)
-        player.volume = volumebarValue;
-    }
-    
-    func muteToggle(){
-        volumeBar.doubleValue = 0
-        onVolumeValueChange()
-    }
-    
-    func seekbarUpdate(){
-        if (self.player.currentItem !== nil){
-            let duration = CMTimeGetSeconds(self.player.currentItem!.duration)
-            let time = CMTimeGetSeconds(self.player.currentTime())
-            let value = Float(seekBar.maxValue - seekBar.minValue) * Float(time) / Float(duration) + Float(seekBar.minValue)
-            seekBar.setValue(value, forKey: "value")
-            
-            let min = Int(time / 60)
-            let sec = Int(time.truncatingRemainder(dividingBy: 60))
-            moviePlayTimeText.text = String(format: "%02d:%02d",min, sec)
+    func movieRunControll(){
+        if (player.rate == 0.0) {
+            player.play()
+        } else {
+            player.pause()
         }
+        movieModeView.movieRunControll()
     }
-    
+
     func setWindow(){
+        print(window.styleMask)
         let screen = NSScreen.main()
         window.styleMask = NSWindowStyleMask.borderless
         window.level = Int(CGWindowLevelForKey(.desktopWindow))
@@ -144,19 +116,28 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             
             playerView.frame.size = size
             webView.frame.size = size
-            
-            toggleView()
         }
         
     }
     
     func windowLevelChange(){
         if window.level == Int(CGWindowLevelForKey(.desktopWindow)) {
-            window.level = Int(CGWindowLevelForKey(.floatingWindow))
-            windowLevelChangeButton.title = "toBehind"
+            window.styleMask = NSWindowStyleMask(rawValue: 15)
+            window.level = Int(CGWindowLevelForKey(.normalWindow))
+            webView.frame.size = window.frame.size
+            webModeView.windowLevelChangeButton.title = "toBehind"
         } else {
+            window.styleMask = NSWindowStyleMask.borderless
+            let screen = NSScreen.main()
+            if let frame = screen?.frame  {
+                let size = NSSize(width: frame.size.width, height: frame.size.height)
+                let point = NSPoint(x: 0, y: 0)
+                window.setFrameOrigin(point)
+                window.setContentSize(size)
+            }
             window.level = Int(CGWindowLevelForKey(.desktopWindow))
-            windowLevelChangeButton.title = "toFront"
+            webView.frame.size = window.frame.size
+            webModeView.windowLevelChangeButton.title = "toFront"
         }
     }
     
@@ -174,7 +155,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             if result == NSFileHandlingPanelOKButton {
                 guard let url = self.openPanel.url else { return }
                 self.playlist.add(filePath: url)
-                //print(url.absoluteString)
+                print(url.absoluteString)
             }
             
         }
@@ -191,19 +172,13 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     func showPopover(_ sender: AnyObject?) {
         if let button = statusItem.button {
             popovar.show(relativeTo: button.bounds, of: button, preferredEdge: NSRectEdge.minY)
-            seekbarUpdate()
-            seekbarTimer = Timer.scheduledTimer(
-                timeInterval: 1,
-                target: self,
-                selector: #selector(AppDelegate.seekbarUpdate),
-                userInfo: nil,
-                repeats: true);
+            movieModeView.seekbarSet()
         }
     }
     
     func closePopover(_ sender: AnyObject?) {
         popovar.performClose(sender)
-        seekbarTimer = Timer()
+        movieModeView.seekbarStop()
     }
 
     func quit(){
@@ -212,91 +187,56 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         self.setWindow()
-        //self.launchFinder()
         
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
             DispatchQueue.main.async {
                 self.playlist.selector += 1;
                 if(self.playlist.playlist.count <= self.playlist.selector){
                     self.playlist.selector = 0;
-                    if (self.repeatButton.state == 1 && self.playlist.playlist.count > 0){
-                        self.player.seek(to: kCMTimeZero)
+                    self.player.seek(to: kCMTimeZero)
+                    if (self.movieModeView.repeatButton.state == 1 && self.playlist.playlist.count > 0){
                         self.setMovie()
                     }
                 }else{
                     self.setMovie();
                 }
+                self.movieModeView.movieRunControll()
                 self.playlist.drawView()
             }
         })
         
-        //self.statusItem.button?.image = menubarIcon;
-        
         if let button = self.statusItem.button {
             button.image = menubarIcon
-            button.action = #selector(AppDelegate.togglePopover(_:))
+            button.action = #selector(self.togglePopover(_:))
         }
         
-        let frame = NSRect.init(x: 0, y: 0, width: 300, height: 200)
+        let frame = NSRect.init(x: 0, y: 0, width: 300, height: 220)
         popupView = NSView.init(frame: frame)
         popupViewController.view = popupView
         
-        playlist.create(x: 10, y: 60, width: 280, height: 100)
+        playlist.create(x: 10, y: 80, width: 280, height: 100)
         popupView.addSubview(playlist)
         
-        urlInput.frame = NSRect(x:100,y:180,width:100,height:20)
-        urlInput.action = #selector(AppDelegate.setUrl)
-        popupView.addSubview(urlInput)
         
-        windowLevelChangeButton.create(x: frame.maxX-100, y: 180, width: 80, height: 20,action:#selector(AppDelegate.windowLevelChange))
-        windowLevelChangeButton.title = "toFront"
-        windowLevelChangeButton.isBordered = false;
-        popupView.addSubview(windowLevelChangeButton)
-        windowLevelChangeButton.backgroundColor = NSColor.yellow
         
-        quitButton.create(x: frame.maxX-20, y: 180, width: 20, height: 20,action:#selector(AppDelegate.quit))
-        quitButton.title = "x"
+        quitButton.create(title: "quit" ,x: frame.maxX-100, y: frame.maxY-20, width: 100, height: 20,action:#selector(self.quit))
         quitButton.isBordered = false;
         popupView.addSubview(quitButton)
         quitButton.backgroundColor = NSColor.red
         
-        selectButton.create(x: 0, y: 180, width: 100, height: 20,action: #selector(AppDelegate.launchFinder))
-        selectButton.title = "select"
-        selectButton.isBordered = false;
-        selectButton.backgroundColor = NSColor.blue
-        popupView.addSubview(selectButton)
+        movieModeButton.create(title:"movieMode", x: 0, y: frame.maxY-20, width: 100, height: 20,action:#selector(self.movieMode))
+        movieModeButton.isBordered = false;
+        movieModeButton.backgroundColor = NSColor.green
+        popupView.addSubview(movieModeButton)
         
-        seekBar = NSSlider(frame: NSRect(x: 0, y: 30, width: frame.maxX - 60, height : 20))
-        popupView.addSubview(seekBar)
+        webModeButton.create(title: "webMode",x: 100, y: frame.maxY-20, width: 100, height: 20,action:#selector(self.webMode))
+        webModeButton.isBordered = false;
+        webModeButton.backgroundColor = NSColor.cyan
+        popupView.addSubview(webModeButton)
         
-        moviePlayTimeText.create(x: frame.maxX - 85 , y: 10, width: 50, height: 20,defaultText: "--:--")
-        popupView.addSubview(moviePlayTimeText)
-        
-        muteButton.create(x:80,y:8,width:24,height:24,action:#selector(AppDelegate.muteToggle))
-        muteButton.image = soundIcon;
-        muteButton.isBordered = false;
-        muteButton.backgroundColor = NSColor.clear
-        popupView.addSubview(muteButton)
-        
-        volumeBar = NSSlider(frame: NSRect(x: frame.maxX/2 - 40, y: 10, width: 100, height : 20))
-        volumeBar.action = #selector(AppDelegate.onVolumeValueChange)
-        volumeBar.minValue = 0
-        volumeBar.maxValue = 1
-        volumeBar.doubleValue = 0.5
-        popupView.addSubview(volumeBar)
-        
-        repeatButton = NSButton(frame: NSRect(x: 0, y: 0, width: 60, height: 20))
-        repeatButton.title = "repeat"
-        repeatButton.setButtonType(NSSwitchButton)
-        repeatButton.state = 0
-        repeatButton.frame.origin = NSPoint(x: 10, y: 10)
-        popupView.addSubview(repeatButton)
-        
-        runControllButton.create(x: frame.maxX - 43, y: 10, width: 43, height: 43,action:#selector(AppDelegate.movieRunControll))
-        runControllButton.image = startIcon;
-        runControllButton.isBordered = false;
-        runControllButton.backgroundColor = NSColor.clear
-        popupView.addSubview(runControllButton)
+        movieModeView.create(x: 0, y: 0, width: frame.maxX, height: 70,delegate:self)
+        webModeView.create(x: 0, y: 0, width: frame.maxX, height: 70,delegate:self)
+        self.movieMode()
         
         popovar.contentViewController = popupViewController
         
