@@ -1,0 +1,8 @@
+project.xcworkspace/xcuserdata/ build/
+
+*~*.swp
+*.DS_Store
+wallpaperEngine.build
+DerivedData
+wallpaperEngineTests
+wallpaperEngineUITests
