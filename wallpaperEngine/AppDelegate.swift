@@ -3,7 +3,7 @@
 //  wallpaperEngine
 //
 //  Created by 今野暁 on 2017/02/06.
-//  Copyright © 2017年 今野暁. All rights reserved. 
+//  Copyright © 2017年 今野暁. All rights reserved.
 //
 
 import Cocoa
@@ -15,8 +15,8 @@ import AVFoundation
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate{
-
-    @IBOutlet weak var window: NSWindow!
+    
+    var windows:[NSWindow] = [];
     
     var webView = WKWebView()
     
@@ -24,7 +24,6 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     var player = AVPlayer()
     
     var playlist = PlayList();
-    var urlPlayList = PlayList();
     
     let openPanel = NSOpenPanel()
     
@@ -51,7 +50,9 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         webView.removeFromSuperview()
         webModeView.hide()
         
-        window.contentView?.addSubview(playerView)
+        for i in 0..<windows.count {
+            windows[i].contentView?.addSubview(playerView)
+        }
         popupView.addSubview(movieModeView)
         popupView.addSubview(playlist)
     }
@@ -65,7 +66,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         playlist.removeFromSuperview()
         movieModeView.hide()
         
-        window.contentView?.addSubview(webView)
+        windows[windows.count-1].contentView?.addSubview(webView)
+        //        for i in 0..<windows.count {
+        //            windows[i].contentView?.addSubview(webView)
+        //        }
         popupView.addSubview(webModeView)
     }
     
@@ -93,8 +97,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         print(url!)
     }
     
-    func addUrl (){
-        //urlPlayList.add(file webModeView.urlInput.stringValue)
+    func reload (){
+        webView.reload()
     }
     
     func movieRunControll(){
@@ -105,44 +109,44 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         }
         movieModeView.movieRunControll()
     }
-
-    func setWindow(){
-        print(window.styleMask)
-        let screen = NSScreen.main()
-        window.styleMask = NSWindowStyleMask.borderless
-        window.level = Int(CGWindowLevelForKey(.desktopWindow))
-        window.collectionBehavior = NSWindowCollectionBehavior.canJoinAllSpaces
+    
+    func setWindow(counter:Int,screen:NSScreen){
+        let newWindow = windows[counter]
+        newWindow.styleMask = NSWindowStyleMask.borderless
+        newWindow.level = Int(CGWindowLevelForKey(.desktopWindow))
+        newWindow.collectionBehavior = NSWindowCollectionBehavior.canJoinAllSpaces
         
-        if let frame = screen?.frame  {
-            let size = NSSize(width: frame.size.width, height: frame.size.height)
-            let point = NSPoint(x: 0, y: 0)
-            window.setFrameOrigin(point)
-            window.setContentSize(size)
-            
-            playerView.frame.size = size
-            webView.frame.size = size
-        }
+        let frame = screen.frame
+        let size = NSSize(width: frame.size.width, height: frame.size.height)
+        let point = NSPoint(x: screen.frame.minX, y: screen.frame.minY)
+        newWindow.setFrameOrigin(point)
+        newWindow.setContentSize(size)
+        
+        playerView.frame.size = size
+        webView.frame.size = size
+        
+        newWindow.makeKeyAndOrderFront(nil)
+        windows[counter] = newWindow
         
     }
     
     func windowLevelChange(){
-        if window.level == Int(CGWindowLevelForKey(.desktopWindow)) {
-            window.styleMask = NSWindowStyleMask(rawValue: 15)
-            window.level = Int(CGWindowLevelForKey(.normalWindow))
-            webView.frame.size = window.frame.size
-            webModeView.windowLevelChangeButton.title = "toBehind"
-        } else {
-            window.styleMask = NSWindowStyleMask.borderless
-            let screen = NSScreen.main()
-            if let frame = screen?.frame  {
-                let size = NSSize(width: frame.size.width, height: frame.size.height)
-                let point = NSPoint(x: 0, y: 0)
-                window.setFrameOrigin(point)
-                window.setContentSize(size)
+        for i in 0..<windows.count {
+            if windows[i].level == Int(CGWindowLevelForKey(.desktopWindow)) {
+                windows[i].styleMask = NSWindowStyleMask(rawValue: 15)
+                windows[i].level = Int(CGWindowLevelForKey(.normalWindow))
+                webView.frame.size = windows[i].frame.size
+                webModeView.windowLevelChangeButton.title = "toBehind"
+            } else {
+                windows[i].styleMask = NSWindowStyleMask.borderless
+                //            windows = []
+                var screens = NSScreen.screens()
+                let screensCount:Int = (screens?.count)!
+                for i in 0..<screensCount {
+                    self.setWindow(counter:i,screen:(screens?[i])!)
+                }
+                
             }
-            window.level = Int(CGWindowLevelForKey(.desktopWindow))
-            webView.frame.size = window.frame.size
-            webModeView.windowLevelChangeButton.title = "toFront"
         }
     }
     
@@ -165,7 +169,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             
         }
     }
-   
+    
     func togglePopover(_ sender: AnyObject?) {
         if popovar.isShown {
             closePopover(sender)
@@ -185,13 +189,20 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         popovar.performClose(sender)
         movieModeView.seekbarStop()
     }
-
+    
     func quit(){
         exit(0);
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        self.setWindow()
+        //        windows = []
+        var screens = NSScreen.screens()
+        let screensCount:Int = (screens?.count)!
+        for i in 0..<screensCount {
+            let newWindow = NSWindow()
+            windows.append(newWindow)
+            self.setWindow(counter:i,screen:(screens?[i])!)
+        }
         
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
             DispatchQueue.main.async {
@@ -246,11 +257,11 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         popovar.contentViewController = popupViewController
         
     }
-  
+    
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-
+    
 }
 
 
