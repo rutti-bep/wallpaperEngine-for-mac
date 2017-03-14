@@ -133,8 +133,10 @@ class MovieModeView:ModeView {
 }
 
 class WebModeView: ModeView {
+    
     var windowLevelChangeButton = SuperButton()
     var urlInput = NSTextField()
+    var screenChangeButton = SuperButton()
     
     var appDelegate:AppDelegate!
     
@@ -149,6 +151,12 @@ class WebModeView: ModeView {
         windowLevelChangeButton.isBordered = false;
         self.addSubview(windowLevelChangeButton)
         windowLevelChangeButton.backgroundColor = NSColor.brown
+        
+        screenChangeButton.create(title: "screenChange",x: 10 , y: 50, width: 100, height: 20,action:#selector(appDelegate.screenChenge))
+        screenChangeButton.backgroundColor = NSColor.darkGray
+        screenChangeButton.isBordered = false
+        self.addSubview(screenChangeButton)
+        
     }
     
    

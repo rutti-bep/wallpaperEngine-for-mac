@@ -15,7 +15,7 @@ import AVFoundation
 
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate{
-        
+    
     var window = NSWindow();
     var windowCounter = 0;
     
@@ -137,6 +137,17 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             window.styleMask = NSWindowStyleMask.borderless
             self.setWindow()
         }
+    }
+    
+    func screenChenge(){
+        windowCounter += 1;
+        
+        let screensCount = (NSScreen.screens()?.count)!
+        if screensCount <= windowCounter {
+            windowCounter = 0
+        }
+        
+        self.setWindow()
     }
     
     func launchFinder(){
