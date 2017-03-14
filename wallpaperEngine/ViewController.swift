@@ -22,9 +22,9 @@ class ModeView:NSView {
 }
 
 class MovieModeView:ModeView {
-    let soundIcon = NSImage(named: "sound@2x.png")
-    let startIcon = NSImage(named: "start@3x.png")
-    let stopIcon = NSImage(named: "stop@3x.png")
+    let soundIcon = NSImage(named: "sound")
+    let startIcon = NSImage(named: "start")
+    let stopIcon = NSImage(named: "stop")
     
     var selectButton = SuperButton()
     var runControllButton = SuperButton()

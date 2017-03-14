@@ -42,7 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     var webModeView = WebModeView()
     
-    let menubarIcon = NSImage(named: "icon.png")
+    let menubarIcon = NSImage(named: "icon")
     
     func movieMode(){
         webView.stopLoading()

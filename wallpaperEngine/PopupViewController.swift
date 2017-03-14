@@ -42,6 +42,7 @@ class Label: NSTextField {
         set {
             self.placeholderString = newValue        }
     }
+    
     func create(x:CGFloat,y:CGFloat,width:CGFloat,height:CGFloat,defaultText:String){
         self.frame = NSRect(x:x,y:y,width:width,height:height);
         self.placeholderString = defaultText;
