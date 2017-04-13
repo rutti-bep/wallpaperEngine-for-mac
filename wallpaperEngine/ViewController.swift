@@ -135,6 +135,7 @@ class MovieModeView:ModeView {
 class WebModeView: ModeView {
     
     var windowLevelChangeButton = SuperButton()
+    var reloadButton = SuperButton()
     var urlInput = NSTextField()
     var screenChangeButton = SuperButton()
     
@@ -145,17 +146,25 @@ class WebModeView: ModeView {
         appDelegate = delegate
         urlInput.frame = NSRect(x:10,y:20,width:width-20,height:20)
         urlInput.action = #selector(appDelegate.setUrl)
+        urlInput.placeholderString = "please url!"
         self.addSubview(urlInput)
         
-        windowLevelChangeButton.create(title: "toFront", x: frame.maxX-100, y: 40, width: 100, height: 20,action:#selector(appDelegate.windowLevelChange))
+        windowLevelChangeButton.create(title: "toFront", x: frame.maxX-105, y: 40, width: 95, height: 20,action:#selector(appDelegate.windowLevelChange))
         windowLevelChangeButton.isBordered = false;
         self.addSubview(windowLevelChangeButton)
         windowLevelChangeButton.backgroundColor = NSColor.brown
         
-        screenChangeButton.create(title: "screenChange",x: 10 , y: 50, width: 100, height: 20,action:#selector(appDelegate.screenChenge))
+        reloadButton.create(title:"reload",x: 105,y: 40 , width: 90,height: 20, action:#selector(appDelegate.reload))
+        reloadButton.isBordered = false;
+        self.addSubview(reloadButton)
+        reloadButton.backgroundColor = NSColor.blue
+        
+        //マルチスクリーン用のボタン...移動求
+        screenChangeButton.create(title: "screenChange",x: 10 , y: 40, width: 95, height: 20,action:#selector(appDelegate.screenChenge))
         screenChangeButton.backgroundColor = NSColor.darkGray
         screenChangeButton.isBordered = false
-        self.addSubview(screenChangeButton)
+       // self.addSubview(screenChangeButton)
+        screenChangeButton.backgroundColor = NSColor.darkGray
         
     }
     

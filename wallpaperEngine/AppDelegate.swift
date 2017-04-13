@@ -135,6 +135,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
             webModeView.windowLevelChangeButton.title = "toBehind"
         } else {
             window.styleMask = NSWindowStyleMask.borderless
+            webModeView.windowLevelChangeButton.title = "toFlont"
             self.setWindow()
         }
     }
