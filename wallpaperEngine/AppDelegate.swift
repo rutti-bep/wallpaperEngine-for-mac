@@ -16,7 +16,8 @@ import AVFoundation
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate{
     
-    var windows:[NSWindow] = [];
+    var window = NSWindow();
+    var windowCounter = 0;
     
     var webView = WKWebView()
     
@@ -41,7 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     
     var webModeView = WebModeView()
     
-    let menubarIcon = NSImage(named: "icon.png")
+    let menubarIcon = NSImage(named: "icon")
     
     func movieMode(){
         webView.stopLoading()
@@ -50,9 +51,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         webView.removeFromSuperview()
         webModeView.hide()
         
-        for i in 0..<windows.count {
-            windows[i].contentView?.addSubview(playerView)
-        }
+        window.contentView?.addSubview(playerView)
+        
         popupView.addSubview(movieModeView)
         popupView.addSubview(playlist)
     }
@@ -66,10 +66,8 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         playlist.removeFromSuperview()
         movieModeView.hide()
         
-        windows[windows.count-1].contentView?.addSubview(webView)
-        //        for i in 0..<windows.count {
-        //            windows[i].contentView?.addSubview(webView)
-        //        }
+        window.contentView?.addSubview(webView)
+        
         popupView.addSubview(webModeView)
     }
     
@@ -110,44 +108,47 @@ class AppDelegate: NSObject, NSApplicationDelegate{
         movieModeView.movieRunControll()
     }
     
-    func setWindow(counter:Int,screen:NSScreen){
-        let newWindow = windows[counter]
-        newWindow.styleMask = NSWindowStyleMask.borderless
-        newWindow.level = Int(CGWindowLevelForKey(.desktopWindow))
-        newWindow.collectionBehavior = NSWindowCollectionBehavior.canJoinAllSpaces
+    func setWindow(){
+        let screen:NSScreen = (NSScreen.screens()?[windowCounter])!
+        
+        window.styleMask = NSWindowStyleMask.borderless
+        window.level = Int(CGWindowLevelForKey(.desktopWindow))
+        window.collectionBehavior = NSWindowCollectionBehavior.canJoinAllSpaces
         
         let frame = screen.frame
         let size = NSSize(width: frame.size.width, height: frame.size.height)
         let point = NSPoint(x: screen.frame.minX, y: screen.frame.minY)
-        newWindow.setFrameOrigin(point)
-        newWindow.setContentSize(size)
+        window.setFrameOrigin(point)
+        window.setContentSize(size)
         
         playerView.frame.size = size
         webView.frame.size = size
         
-        newWindow.makeKeyAndOrderFront(nil)
-        windows[counter] = newWindow
-        
+        window.makeKeyAndOrderFront(nil)
     }
     
     func windowLevelChange(){
-        for i in 0..<windows.count {
-            if windows[i].level == Int(CGWindowLevelForKey(.desktopWindow)) {
-                windows[i].styleMask = NSWindowStyleMask(rawValue: 15)
-                windows[i].level = Int(CGWindowLevelForKey(.normalWindow))
-                webView.frame.size = windows[i].frame.size
-                webModeView.windowLevelChangeButton.title = "toBehind"
-            } else {
-                windows[i].styleMask = NSWindowStyleMask.borderless
-                //            windows = []
-                var screens = NSScreen.screens()
-                let screensCount:Int = (screens?.count)!
-                for i in 0..<screensCount {
-                    self.setWindow(counter:i,screen:(screens?[i])!)
-                }
-                
-            }
+        if window.level == Int(CGWindowLevelForKey(.desktopWindow)) {
+            window.styleMask = NSWindowStyleMask(rawValue: 15)
+            window.level = Int(CGWindowLevelForKey(.normalWindow))
+            webView.frame.size = window.frame.size
+            webModeView.windowLevelChangeButton.title = "toBehind"
+        } else {
+            window.styleMask = NSWindowStyleMask.borderless
+            webModeView.windowLevelChangeButton.title = "toFlont"
+            self.setWindow()
         }
+    }
+    
+    func screenChenge(){
+        windowCounter += 1;
+        
+        let screensCount = (NSScreen.screens()?.count)!
+        if screensCount <= windowCounter {
+            windowCounter = 0
+        }
+        
+        self.setWindow()
     }
     
     func launchFinder(){
@@ -195,14 +196,10 @@ class AppDelegate: NSObject, NSApplicationDelegate{
     }
     
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        //        windows = []
-        var screens = NSScreen.screens()
-        let screensCount:Int = (screens?.count)!
-        for i in 0..<screensCount {
-            let newWindow = NSWindow()
-            windows.append(newWindow)
-            self.setWindow(counter:i,screen:(screens?[i])!)
-        }
+        
+        windowCounter = (NSScreen.screens()?.count)!-1
+        window.makeKeyAndOrderFront(nil)
+        self.setWindow()
         
         NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: nil, using: { (_) in
             DispatchQueue.main.async {

@@ -1,0 +1,8 @@
+version: "Apple Swift version 3.0.2 (swiftlang-800.0.63 clang-800.0.42.1)"
+options: "4e1bf5b798fc3745a1e857cc2113893e"
+build_time: [542940483, 32715000]
+inputs:
+  "/Users/konnosatoru/src/github.com/rutti-bep/wallpaperEngine-for-mac/wallpaperEngine/ViewController.swift": [542784992, 0]
+  "/Users/konnosatoru/src/github.com/rutti-bep/wallpaperEngine-for-mac/wallpaperEngine/AppDelegate.swift": [542784726, 0]
+  "/Users/konnosatoru/src/github.com/rutti-bep/wallpaperEngine-for-mac/wallpaperEngine/PlaylistController.swift": [542786674, 0]
+  "/Users/konnosatoru/src/github.com/rutti-bep/wallpaperEngine-for-mac/wallpaperEngine/PopupViewController.swift": [542784375, 0]
